@@ -6,22 +6,30 @@ rH = 608
 screen = pygame.display.set_mode((rW, rH))
 black = (0, 0, 0)
 
-class blocks:
-    def __init__(self, count, x, y):
-        self.count = count
+class Block:
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.rect = Rect(self.x, self.y, 32, 32)
 
     def drawBlocks(self):
-        return pygame.draw.rect(screen, black, self.rect)
+        return pygame.draw.rect(screen, black, Rect(self.x, self.y, 32, 32))
 
-    def updateBlockCoordinate(self, last_key):
-        if last_key == "D":
-            pass
-        elif last_key == "U":
-            pass
+    def adjustDirection(self, last_key, xPos, yPos):
+        if last_key == "L":
+            self.x = xPos + 32
+            self.y = yPos
         elif last_key == "R":
-            pass
-        elif last_key == "L":
-            pass
+            self.x = xPos - 32
+            self.y = yPos
+        elif last_key == "D":
+            self.y = yPos - 32
+            self.x = xPos
+        elif last_key == "U":
+            self.y = yPos + 32
+            self.x = xPos
+
+    def getX(self):
+        return self.x
+
+    def getY(self):
+        return self.y
