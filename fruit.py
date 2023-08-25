@@ -2,8 +2,8 @@ import pygame
 from pygame.locals import *
 import random
 
-rW = 906
-rH = 608
+rW = 800
+rH = 800
 
 class Fruits:
     def __init__(self, x, y):
@@ -25,9 +25,20 @@ class Fruits:
         return False
 
     def reposition(self):
-        self.x = random.randint(0, rW - 32)
-        self.y = random.randint(0, rH - 32)
+        while True:
+            randomXPos = random.randint(0, rW - 32)
+            randomYPos = random.randint(0, rH - 32)
+            if (randomXPos % 32 == 0 and randomYPos % 32 == 0):
+                self.x = randomXPos
+                self.y = randomYPos
+                return False
 
     def returnCount(self):
         return self.count
+
+    def getX(self):
+        return self.x
+
+    def getY(self):
+        return self.y
 
