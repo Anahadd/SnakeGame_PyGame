@@ -127,6 +127,14 @@ while running:
     for block in snake_blocks:
         drawPlayer(block)
         updateCoordinatesBlocks.append((block.getX(), block.getY()))
+        
+        # check if snake hit itself 
+        if block != snake_blocks[0]:
+            collide = pygame.Rect.colliderect(block.get_rect(), snake_blocks[0])
+            if collide:
+                running = False 
+                print("Collision With Self")
+
     updateCoordinatesFruit = (fruit.getX(), fruit.getY())
 
     # setting grid parameters
