@@ -82,6 +82,13 @@ while running:
             blocks[0].drawBlocks()
             blocks[0].adjustDirection(last_key, x, y)
 
+    font = pygame.font.Font("MoonbrightDemo-1GGn2.ttf", 32)
+    text = font.render("SCORE: " + str(fruit.returnCount()), True, (0, 0, 0), (255, 255, 255))
+    textRect = text.get_rect()
+    textRect.center = (100, 100)
+
+    screen.blit(text, textRect)
+
     pygame.display.flip()
 
 pygame.quit()
