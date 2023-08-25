@@ -122,19 +122,6 @@ while running:
     # bg
     screen.fill((0, 0, 255))
 
-    # update pos
-    updateCoordinates = (x, y)
-    for block in snake_blocks:
-        drawPlayer(block)
-        updateCoordinatesBlocks.append((block.getX(), block.getY()))
-        
-        # check if snake hit itself 
-        if block != snake_blocks[0]:
-            collide = pygame.Rect.colliderect(block.get_rect(), snake_blocks[0])
-            if collide:
-                running = False 
-                print("Collision With Self")
-
     updateCoordinatesFruit = (fruit.getX(), fruit.getY())
 
     # setting grid parameters
@@ -142,6 +129,19 @@ while running:
 
     # boundary check
     running = checkBoundaries(snake_blocks[0])
+
+    # update pos
+    updateCoordinates = (x, y)
+    for block in snake_blocks:
+        drawPlayer(block)
+        updateCoordinatesBlocks.append((block.getX(), block.getY()))
+
+        # check if snake hit itself
+        if block != snake_blocks[0]:
+            collide = pygame.Rect.colliderect(block.get_rect(), snake_blocks[0])
+            if collide:
+                running = False
+                print("Collision With Self")
 
     # draw gui
     fruit.drawFruit(screen)
@@ -158,4 +158,5 @@ while running:
     clock.tick(12)
 
 pygame.quit()
+
 
