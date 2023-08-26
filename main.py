@@ -24,6 +24,9 @@ speed = 32
 last_key = ""
 fruit = Fruits(192, 288)
 snake_blocks = [Block(x, y)]
+directions = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+queue = []
+visited = []
 
 # q learning parameters
 updateCoordinates = ()
@@ -32,6 +35,8 @@ updateCoordinatesFruit = ()
 
 grid_state = np.full((25, 25), "empty", dtype=object)
 
+new_head_x = 192
+new_head_y = 192
 
 # draws player
 def drawPlayer(block):
@@ -58,6 +63,29 @@ def draw_grid():
 def pixel_to_grid(x, y):
     return x // 32, y // 32
 
+def bfs_maze_solver(start, end_node, maze_array):
+    directions = [(0, -1), (0, 1), (-1, 0), (1, 0)]
+    queue = [(start, [])]  # Each item has a node and a path to that node
+    visited = set()
+
+    while queue:
+        current_node, current_path = queue.pop(0)
+
+        if current_node == end_node:
+            return current_path + [end_node]
+
+        for dir in directions:
+            neighbor_node = (current_node[0] + dir[0], current_node[1] + dir[1])
+            if (0 <= neighbor_node[0] < len(maze_array)) and (0 <= neighbor_node[1] < len(maze_array[0])):  # In bounds
+                if neighbor_node not in visited and maze_array[neighbor_node[0]][neighbor_node[1]] not in ["snake", "head of snake"]:
+                    visited.add(neighbor_node)
+                    queue.append((neighbor_node, current_path + [current_node]))
+
+    return None
+
+def updateCoordinate(x, r, c):
+    return (x[0] + r, x[1] + c)
+
 def updateGrid(updateCoordinates, updateCoordinatesBlocks, updateCoordinatesFruit):
     grid_state[:, :] = "empty"
 
@@ -71,125 +99,29 @@ def updateGrid(updateCoordinates, updateCoordinatesBlocks, updateCoordinatesFrui
     fruit_x, fruit_y = pixel_to_grid(*updateCoordinatesFruit)
     grid_state[fruit_x][fruit_y] = "food"
 
-
-'''def checkDir(x, y, dir):
-    row = x // 32
-    col = y // 32
-
-    count = 0
-
-    if dir == "L":
-        for i in range(0, col):
-            if grid_state[row][i] == "empty":
-                count += 1
-
-        if count == col:
-            return True
-            print("clear")
-        else:
-            return False
-
-    elif dir == "R":
-        for i in range(col + 1, 25):
-            if grid_state[row][i] == "empty":
-                count += 1
-
-        if count == 24 - col:
-            return True
-            print("clear")
-        else:
-            return False
-
-    elif dir == "U":
-        for i in range(0, row):
-            if grid_state[i][col] == "empty":
-                count += 1
-        if count == row:
-            return True
-            print("clear")
-        else:
-            return False
-
-    elif dir == "D":
-        for i in range(row + 1, 25):
-            if grid_state[i][col] == "empty":
-                count += 1
-        if count == 24 - row:
-            return True
-            print("clear")
-        else:
-            return False
-'''
-def pathToFood(x_one, x_two, y_one, y_two, last_key):
-    # manhattan distance
-    total_x = x_two - x_one
-    total_y = y_two - y_one
-
-    dX = int(total_x / 32)
-    dY = int(total_y / 32)
-
-    if dX != 0:
-        if dX > 0 or dX < rW:
-            if dX > 0:
-                last_key = "L"
-                return "R"
-            else:
-                last_key = "R"
-                return "L"
-    elif dY != 0:
-        if dY > 0 or dY < rH:
-            if dY > 0:
-                last_key = "U"
-                return "D"
-            else:
-                last_key = "D"
-                return "U"
-    else:
-        return 'S'
-
-
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # stores boolean list of keys pressed
-    keysPressed = pygame.key.get_pressed()
-
-    # get the last key pressed to replicate snake movement
-    if keysPressed[pygame.K_LEFT] and last_key != "R":
-        last_key = "L"
-    elif keysPressed[pygame.K_RIGHT] and last_key != "L":
-        last_key = "R"
-    elif keysPressed[pygame.K_UP] and last_key != "D":
-        last_key = "U"
-    elif keysPressed[pygame.K_DOWN] and last_key != "U":
-        last_key = "D"
-
-    # set parameters for snake head (x, y)
     head_x, head_y = snake_blocks[0].getX(), snake_blocks[0].getY()
+    snake_head_coord = pixel_to_grid(head_x, head_y)
+    fruit_coord = pixel_to_grid(fruit.getX(), fruit.getY())
 
-    d = pathToFood(head_x, fruit.getX(), head_y, fruit.getY(), last_key)
+    bfs_path = bfs_maze_solver(snake_head_coord, fruit_coord, grid_state)
 
-    # directions
-    if d == "L" and checkBoundaries(snake_blocks[0], -32, 0) == True:
-        head_x -= speed
-    elif d == "R" and checkBoundaries(snake_blocks[0], 32, 0) == True:
-        head_x += speed
-    elif d == "U" and checkBoundaries(snake_blocks[0], 0, -32) == True:
-        head_y -= speed
-    elif d == "D" and checkBoundaries(snake_blocks[0], 0, 32) == True:
-        head_y += speed
+    if bfs_path and len(bfs_path) > 1:
+        next_step = bfs_path[1]
+        x_move, y_move = (next_step[0] - snake_head_coord[0]) * 32, (next_step[1] - snake_head_coord[1]) * 32
+        new_head_x, new_head_y = head_x + x_move, head_y + y_move
 
-    # create new head
-    new_head = Block(head_x, head_y)
-    snake_blocks.insert(0, new_head)
+        new_head = Block(new_head_x, new_head_y)
+        snake_blocks.insert(0, new_head)
 
-    # check for collision w fruit
-    if fruit.checkCollision(new_head.get_rect()):
-        fruit.reposition()
-    else:
-        snake_blocks.pop()
+        if fruit.checkCollision(new_head.get_rect()):
+            fruit.reposition(snake_blocks)
+        else:
+            snake_blocks.pop()
 
     # bg
     screen.fill((0, 0, 255))
@@ -197,35 +129,38 @@ while running:
     # boundary check
     running = checkBoundaries(snake_blocks[0], 0, 0)
 
-    for block in snake_blocks:
+    # check if snake hit itself
+    for i, block in enumerate(snake_blocks):
         drawPlayer(block)
+        if i < 2:
+            continue
 
-        # check if snake hit itself
-        if block != snake_blocks[0]:
-            collide = pygame.Rect.colliderect(block.get_rect(), snake_blocks[0])
-            if collide:
-                running = False
-                print("Collision With Self")
-                print(snake_blocks[1].getX(), snake_blocks[1].getY())
+        if block.get_rect().colliderect(snake_blocks[0].get_rect()):
+            running = False
+            print("Collision With Self")
+            print(snake_blocks[1].getX(), snake_blocks[1].getY())
+            break
 
-    snake_head_coord = (snake_blocks[0].getX(), snake_blocks[0].getY())
     snake_body_coords = [(block.getX(), block.getY()) for block in snake_blocks[1:]]
-    fruit_coord = (fruit.getX(), fruit.getY())
     updateGrid(snake_head_coord, snake_body_coords, fruit_coord)
 
     # draw gui
     fruit.drawFruit(screen)
     draw_grid()
-    font = pygame.font.Font("MoonbrightDemo-1GGn2.ttf", 16)
+    font = pygame.font.Font("MoonbrightDemo-1GGn2.ttf", 32)
     text = font.render("SCORE: " + str(len(snake_blocks) - 1), True, (0, 0, 0), (255, 255, 255))
     textRect = text.get_rect()
-    textRect.center = (32, 32)
+    textRect.center = (64, 64)
     screen.blit(text, textRect)
 
     pygame.display.flip()
 
+    if len(snake_blocks) == 625:
+        running = False
+        print("snake wins")
+
     # fps
-    clock.tick(12)
+    clock.tick(50)
 
 pygame.quit()
 
