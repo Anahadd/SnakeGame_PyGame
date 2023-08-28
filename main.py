@@ -119,7 +119,7 @@ while running:
         snake_blocks.insert(0, new_head)
 
         if fruit.checkCollision(new_head.get_rect()):
-            fruit.reposition(snake_blocks)
+            fruit.reposition(snake_blocks[0].getY(), snake_blocks[0].getY())
         else:
             snake_blocks.pop()
 
@@ -163,5 +163,6 @@ while running:
     clock.tick(50)
 
 pygame.quit()
+
 
 
